@@ -1,5 +1,7 @@
 # sigv4-100lines-py
 
+**English** | [日本語](README.ja.md)
+
 [![test](https://github.com/0-draft/sigv4-100lines-py/actions/workflows/test.yml/badge.svg)](https://github.com/0-draft/sigv4-100lines-py/actions/workflows/test.yml)
 
 AWS Signature Version 4 (SigV4) in under 100 lines of pure Python, no external dependencies. Calls `STS GetCallerIdentity` end-to-end, so you can see your own request authenticated by AWS without `boto3` or `requests` in the loop.
