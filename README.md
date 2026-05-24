@@ -1,6 +1,10 @@
 # sigv4-100lines-py
 
+[![test](https://github.com/0-draft/sigv4-100lines-py/actions/workflows/test.yml/badge.svg)](https://github.com/0-draft/sigv4-100lines-py/actions/workflows/test.yml)
+
 AWS Signature Version 4 (SigV4) in under 100 lines of pure Python, no external dependencies. Calls `STS GetCallerIdentity` end-to-end, so you can see your own request authenticated by AWS without `boto3` or `requests` in the loop.
+
+Algorithm correctness is verified on every push by `test_sigv4.py`, which runs the AWS-published [`get-vanilla` SigV4 test vector](https://github.com/saibotsivad/aws-sig-v4-test-suite) against the same functions `sigv4.py` exports.
 
 ## What this is
 
@@ -23,12 +27,13 @@ After this, debugging `SignatureDoesNotMatch` errors stops being magic.
 
 ## Files
 
-| File          | Purpose                                                                                      | External deps |
-| ------------- | -------------------------------------------------------------------------------------------- | ------------- |
-| `sigv4.py`    | The full SigV4 implementation. Calls `STS GetCallerIdentity` and prints the XML response.    | None          |
-| `get_temp.py` | Helper to fetch STS temporary credentials with `boto3` and print `export ...` lines.         | `boto3`       |
+| File             | Purpose                                                                                       | External deps |
+| ---------------- | --------------------------------------------------------------------------------------------- | ------------- |
+| `sigv4.py`       | The full SigV4 implementation. Calls `STS GetCallerIdentity` and prints the XML response.     | None          |
+| `test_sigv4.py`  | Deterministic test against AWS's `get-vanilla` SigV4 test vector. Runs in CI on every push.   | None          |
+| `get_temp.py`    | Helper to fetch STS temporary credentials with `boto3` and print `export ...` lines.          | `boto3`       |
 
-`sigv4.py` is the star. `get_temp.py` exists only so you can test the `ASIA...` + SessionToken path without writing the temp-credential bootstrap from scratch.
+`sigv4.py` is the star. `test_sigv4.py` proves the algorithm is correct without hitting AWS. `get_temp.py` exists only so you can test the `ASIA...` + SessionToken path without writing the temp-credential bootstrap from scratch.
 
 ## Prerequisites
 

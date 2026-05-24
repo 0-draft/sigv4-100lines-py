@@ -1,0 +1,3 @@
+# Only used by get_temp.py to bootstrap STS temporary credentials.
+# sigv4.py and test_sigv4.py have zero external dependencies (standard library only).
+boto3
