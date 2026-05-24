@@ -2,8 +2,6 @@
 
 AWS Signature Version 4 (SigV4) in under 100 lines of pure Python, no external dependencies. Calls `STS GetCallerIdentity` end-to-end, so you can see your own request authenticated by AWS without `boto3` or `requests` in the loop.
 
-Companion code for the dev.to article [SigV4 を 100 行の Python で書いて AWS を叩くハンズオン](https://dev.to/kanywst/aws-sigv4-from-scratch-hands-on).
-
 ## What this is
 
 A self-contained `sigv4.py` that:
