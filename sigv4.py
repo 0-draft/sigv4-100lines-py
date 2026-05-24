@@ -1,17 +1,5 @@
-"""
-SigV4 from scratch, under 100 lines of Python, no external dependencies.
-
-Calls AWS STS GetCallerIdentity using only the Python standard library.
-Supports both long-lived IAM User keys (AKIA...) and STS temporary credentials
-(ASIA... + SessionToken).
-
-Usage:
-    export AWS_ACCESS_KEY_ID="AKIA..."
-    export AWS_SECRET_ACCESS_KEY="..."
-    # Optional: export AWS_SESSION_TOKEN="..." for temporary credentials
-    python3 sigv4.py
-
-See: https://github.com/0-draft/sigv4-100lines-py
+"""SigV4 from scratch, no external deps. Calls STS GetCallerIdentity.
+Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (+ optional AWS_SESSION_TOKEN), run `python3 sigv4.py`.
 """
 
 import datetime
@@ -29,7 +17,6 @@ REGION = "us-east-1"
 SERVICE = "sts"
 HOST = "sts.amazonaws.com"
 ENDPOINT = f"https://{HOST}/"
-
 METHOD = "POST"
 CONTENT_TYPE = "application/x-www-form-urlencoded"
 PAYLOAD = "Action=GetCallerIdentity&Version=2011-06-15"
@@ -45,38 +32,22 @@ date_stamp = now.strftime("%Y%m%d")
 
 # Canonical Request
 payload_hash = hashlib.sha256(PAYLOAD.encode()).hexdigest()
-
+base_headers = f"content-type:{CONTENT_TYPE}\nhost:{HOST}\nx-amz-date:{amz_date}\n"
 if SESSION_TOKEN:
-    canonical_headers = (
-        f"content-type:{CONTENT_TYPE}\n"
-        f"host:{HOST}\n"
-        f"x-amz-date:{amz_date}\n"
-        f"x-amz-security-token:{SESSION_TOKEN}\n"
-    )
+    canonical_headers = base_headers + f"x-amz-security-token:{SESSION_TOKEN}\n"
     signed_headers = "content-type;host;x-amz-date;x-amz-security-token"
 else:
-    canonical_headers = (
-        f"content-type:{CONTENT_TYPE}\n"
-        f"host:{HOST}\n"
-        f"x-amz-date:{amz_date}\n"
-    )
+    canonical_headers = base_headers
     signed_headers = "content-type;host;x-amz-date"
 
 canonical_request = (
-    f"{METHOD}\n"
-    f"/\n"
-    f"\n"
-    f"{canonical_headers}\n"
-    f"{signed_headers}\n"
-    f"{payload_hash}"
+    f"{METHOD}\n/\n\n{canonical_headers}\n{signed_headers}\n{payload_hash}"
 )
 
 # String to Sign
 credential_scope = f"{date_stamp}/{REGION}/{SERVICE}/aws4_request"
 string_to_sign = (
-    f"AWS4-HMAC-SHA256\n"
-    f"{amz_date}\n"
-    f"{credential_scope}\n"
+    f"AWS4-HMAC-SHA256\n{amz_date}\n{credential_scope}\n"
     f"{hashlib.sha256(canonical_request.encode()).hexdigest()}"
 )
 
@@ -91,10 +62,8 @@ signature = hmac.new(k_signing, string_to_sign.encode(), hashlib.sha256).hexdige
 
 # Authorization header
 authorization = (
-    f"AWS4-HMAC-SHA256 "
-    f"Credential={ACCESS_KEY}/{credential_scope}, "
-    f"SignedHeaders={signed_headers}, "
-    f"Signature={signature}"
+    f"AWS4-HMAC-SHA256 Credential={ACCESS_KEY}/{credential_scope}, "
+    f"SignedHeaders={signed_headers}, Signature={signature}"
 )
 
 http_headers = {
@@ -107,12 +76,8 @@ if SESSION_TOKEN:
     http_headers["X-Amz-Security-Token"] = SESSION_TOKEN
 
 req = urllib.request.Request(
-    ENDPOINT,
-    data=PAYLOAD.encode(),
-    method=METHOD,
-    headers=http_headers,
+    ENDPOINT, data=PAYLOAD.encode(), method=METHOD, headers=http_headers,
 )
-
 try:
     with urllib.request.urlopen(req) as res:
         print(res.read().decode())
